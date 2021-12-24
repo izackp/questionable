@@ -1,6 +1,17 @@
 import std/options
 import std/macros
 import std/strformat
+import std/importutils
+
+proc unsafeGet*[T](self: var Option[T]): var T {.inline.} =
+  ## Returns the value of a `some`. The behavior is undefined for `none`.
+  ##
+  ## **Note:** Use this only when you are **absolutely sure** the value is present
+  ## (e.g. after checking with `isSome <#isSome,Option[T]>`_).
+  ## Generally, using the `get proc <#get,Option[T]>`_ is preferred.
+  assert self.isSome
+  privateAccess(Option[T].type)
+  self.val
 
 func isSym(node: NimNode): bool =
   node.kind in {nnkSym, nnkOpenSymChoice, nnkClosedSymChoice}
@@ -21,8 +32,11 @@ template `.?`*(option: typed, identifier: untyped{nkIdent}): untyped =
   ## Option or Result has a value.
 
   # chain is of shape: option.?identifier
-  expectReturnType(identifier, option.unsafeGet.identifier)
-  option ->? option.unsafeGet.identifier
+  #expectReturnType(identifier, option.unsafeGet.identifier)
+  when typeof(option.unsafeGet.identifier) is void:
+    option -->? option.unsafeGet.identifier
+  else:
+    option ->? option.unsafeGet.identifier
 
 macro `.?`*(option: typed, infix: untyped{nkInfix}): untyped =
   ## The `.?` chaining operator is used to safely access fields and call procs
@@ -32,6 +46,7 @@ macro `.?`*(option: typed, infix: untyped{nkInfix}): untyped =
   # chain is of shape: option.?left `operator` right
   let left = infix[1]
   infix[1] = quote do: `option`.?`left`
+  #echo infix.treeRepr
   infix
 
 macro `.?`*(option: typed, bracket: untyped{nkBracketExpr}): untyped =
@@ -42,6 +57,7 @@ macro `.?`*(option: typed, bracket: untyped{nkBracketExpr}): untyped =
   # chain is of shape: option.?left[right]
   let left = bracket[0]
   bracket[0] = quote do: `option`.?`left`
+  #echo bracket.treeRepr
   bracket
 
 macro `.?`*(option: typed, dot: untyped{nkDotExpr}): untyped =
@@ -52,6 +68,7 @@ macro `.?`*(option: typed, dot: untyped{nkDotExpr}): untyped =
   # chain is of shape: option.?left.right
   let left = dot[0]
   dot[0] = quote do: `option`.?`left`
+  #echo dot.treeRepr
   dot
 
 macro `.?`*(option: typed, call: untyped{nkCall}): untyped =
@@ -60,7 +77,7 @@ macro `.?`*(option: typed, call: untyped{nkCall}): untyped =
   ## Option or Result has a value.
 
   let procedure = call[0]
-  if call.len == 1:
+  let astTree = if call.len == 1:
     # chain is of shape: option.?procedure()
     quote do: `option`.?`procedure`
   elif procedure.kind == nnkDotExpr:
@@ -80,6 +97,10 @@ macro `.?`*(option: typed, call: untyped{nkCall}): untyped =
     quote do:
       expectReturnType(`procedure`, `call`)
       `option` ->? `call`
+  #echo treeRepr(astTree)
+  #echo astTree.repr
+  #echo astTree.kind
+  return astTree
 
 macro `.?`*(option: typed, symbol: untyped): untyped =
   ## The `.?` chaining operator is used to safely access fields and call procs
@@ -88,4 +109,5 @@ macro `.?`*(option: typed, symbol: untyped): untyped =
 
   symbol.expectSym()
   let expression = ident($symbol)
-  quote do: `option`.?`expression`
+  result = quote do: `option`.?`expression`
+  #echo result.treeRepr

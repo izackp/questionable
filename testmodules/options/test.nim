@@ -3,6 +3,21 @@ import std/sequtils
 import std/tables
 import std/sugar
 import pkg/questionable
+import std/options
+
+type B = object
+  number: int
+
+type A = ref object
+  child: ?A
+  value: ?B
+
+
+proc setTo5(obj:var B) =
+  obj.number = 5
+
+proc dEcho(value:string) =
+  echo value
 
 suite "optionals":
 
@@ -14,6 +29,25 @@ suite "optionals":
   test "! gets value or raises Defect":
     check !42.some == 42
     expect Defect: discard !int.none
+
+  test ".? can be used for calling procs":
+    let a: ?string = "test".some
+    let b: ?string = string.none
+    a.?dEcho()
+    b.?dEcho()
+
+  test ".? can be used for chaining and calling procs":
+    var a3 = A()
+    var a2 = A(child: some(a3), value: some(B(number: 0)))
+    var a = A(child: some(a2), value: some(B(number: 0)))
+
+    var qwerty = a.child.get.value
+    a.child.get.value.?setTo5()
+    #setTo5(a.child.get.value.unsafeGet)
+    check a.child.?value.?number == 5.some
+
+    #a.child.?child.?child.?value.?setTo5()
+    #check a.child.?child.?value.?number == int.none
 
   test ".? can be used for chaining optionals":
     let a: ?seq[int] = @[41, 42].some

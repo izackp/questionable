@@ -26,6 +26,10 @@ template `!`*[T](option: ?T): T =
 
   option.get
 
+template `-->?`*[T, U](option: ?T, expression: U): untyped =
+  if option.isSome:
+    expression
+
 template `->?`*[T,U](option: ?T, expression: ?U): ?U =
   if option.isSome:
     expression
@@ -55,12 +59,13 @@ template `|?`*[T](option: ?T, fallback: T): T =
 
 macro `.?`*[T](option: ?T, brackets: untyped{nkBracket}): untyped =
   let index = brackets[0]
-  quote do:
+  result = quote do:
     type U = typeof(`option`.unsafeGet().?[`index`].unsafeGet())
     if `option`.isSome:
       `option`.unsafeGet().?[`index`]
     else:
       U.none
+  #echo result.treeRepr
 
 Option.liftUnary(`-`)
 Option.liftUnary(`+`)
