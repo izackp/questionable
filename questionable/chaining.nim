@@ -1,17 +1,14 @@
 import std/options
 import std/macros
 import std/strformat
-import std/importutils
 
-proc unsafeGet*[T](self: var Option[T]): var T {.inline.} =
+macro unsafeGet*[T](a: var Option[T]): var T {.inline.} = 
   ## Returns the value of a `some`. The behavior is undefined for `none`.
   ##
   ## **Note:** Use this only when you are **absolutely sure** the value is present
   ## (e.g. after checking with `isSome <#isSome,Option[T]>`_).
   ## Generally, using the `get proc <#get,Option[T]>`_ is preferred.
-  assert self.isSome
-  privateAccess(Option[T].type)
-  self.val
+  result = newDotExpr(a, a.getTypeImpl[^1][0][0][0])
 
 func isSym(node: NimNode): bool =
   node.kind in {nnkSym, nnkOpenSymChoice, nnkClosedSymChoice}
