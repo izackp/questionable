@@ -12,7 +12,7 @@ Use the [Nimble][3] package manager to add `questionable` to an existing
 project. Add the following to its .nimble file:
 
 ```nim
-requires "questionable >= 0.10.1 & < 0.11.0"
+requires "questionable >= 0.10.2 & < 0.11.0"
 ```
 
 If you want to make use of Result types, then you also have to add either the
@@ -192,6 +192,20 @@ let value = fails() |? @[]
 
 # lifted operators:
 let sum = works()[3] + 40
+```
+
+### Without statement
+
+The `without` statement can also be used with Results. It provides access to any
+errors that may arise:
+
+```nim
+proc someProc(r: ?!int) =
+  without value =? r, error:
+    # use `error` to get the error from r
+    return
+
+  # use value
 ```
 
 ### Catching errors
