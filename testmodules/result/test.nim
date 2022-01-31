@@ -4,6 +4,7 @@ import std/sequtils
 import std/strutils
 import std/sugar
 import pkg/questionable/results
+import pkg/questionable
 
 suite "result":
 
@@ -69,6 +70,9 @@ suite "result":
   test "|? can be used to specify a fallback value":
     check 42.success |? 40 == 42
     check int.failure(error) |? 42 == 42
+
+  test "|? can be chained with option":
+    check none[int]() |? int.failure(error) |? 42 == 42
 
   test "=? can be used for optional binding":
     if a =? int.failure(error):

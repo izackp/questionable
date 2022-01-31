@@ -57,6 +57,15 @@ template `|?`*[T](option: ?T, fallback: T): T =
   else:
     fallback
 
+template `|?`*[T](option: ?T, fallback: ?T): ?T =
+  ## Use the `|?` operator to supply a fallback value when an Option does not
+  ## hold a value.
+
+  if option.isSome:
+    option
+  else:
+    fallback
+
 macro `.?`*[T](option: ?T, brackets: untyped{nkBracket}): untyped =
   let index = brackets[0]
   result = quote do:

@@ -110,6 +110,15 @@ proc option*[T,E](value: Result[T,E]): ?T =
   else:
     T.none
 
+template `|?`*[T,E](value: ?T, fallback: Result[T,E]): ?T =
+  ## Use the `|?` operator to supply a fallback value when a Result does not
+  ## hold a value.
+  
+  if value.isSome:
+    value
+  else:
+    option[T,E](fallback)
+    
 Result.liftUnary(`-`)
 Result.liftUnary(`+`)
 Result.liftUnary(`@`)

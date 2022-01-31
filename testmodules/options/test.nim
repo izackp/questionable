@@ -101,6 +101,9 @@ suite "optionals":
     check 42.some |? 40 == 42
     check int.none |? 42 == 42
 
+  test "|? can be chained":
+    check int.none |? int.none |? 42 == 42
+
   test "=? can be used for optional binding":
     if a =? int.none:
       fail
