@@ -5,6 +5,15 @@ Questionable 🤔
 instead of raising errors. They can be a bit unwieldy though. This library is an
 attempt at making their use a bit more elegant.
 
+
+Changes from original repo
+--------------------------
+Added support for:
+* Void procs
+* Mutable params
+* Added |? chaining
+
+
 Installation
 ------------
 
